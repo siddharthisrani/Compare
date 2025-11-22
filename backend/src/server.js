@@ -13,6 +13,21 @@ const adminUserRoutes = require('./routes/adminUsers');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://compare-cybrom.vercel.app/' // your real URL
+];
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
 // Global middlewares
 app.use(helmet());
 app.use(cors({ origin: true }));
