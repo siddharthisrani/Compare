@@ -4,7 +4,7 @@ import { _logout } from './auth';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const client = axios.create({
-  baseURL: 'http://localhost:5000/api' || '/api',
+  baseURL: API_BASE || '/api',
   timeout: 0,
 });
 
