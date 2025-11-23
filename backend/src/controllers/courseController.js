@@ -1,10 +1,63 @@
 const { body, validationResult } = require('express-validator');
+const ExcelJS = require('exceljs');
 const Course = require('../models/Course');
 
 const createValidators = [
   body('name').notEmpty().withMessage('Name required'),
   body('code').notEmpty().withMessage('Code required'),
 ];
+
+async function exportCourseXlsx(req, res, next) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    // create workbook + sheet
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(course.name || 'Syllabus');
+
+    // header row
+    ws.addRow(['Day', 'Technology', 'Topic', 'Module']);
+
+    // flatten syllabus -> rows
+    let dayCounter = 1;
+    (course.syllabus || []).forEach(mod => {
+      const moduleName = mod.moduleName || '';
+      (mod.topics || []).forEach(t => {
+        ws.addRow([
+          dayCounter++,
+          t.technology || '',      // if you stored it; else leave ''
+          t.name || '',
+          moduleName
+          
+        ]);
+      });
+    });
+
+    // some basic styling (optional)
+    ws.getRow(1).font = { bold: true };
+    ws.columns.forEach(col => { col.width = 25; });
+
+    // send as download
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${(course.code || 'course').replace(/[^a-z0-9\-]/gi,'_')}.xlsx"`
+    );
+
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function listCourses(req, res, next) {
   try {
@@ -72,5 +125,6 @@ module.exports = {
   getCourse,
   createCourse,
   updateCourse,
-  deactivateCourse
+  deactivateCourse,
+  exportCourseXlsx
 };

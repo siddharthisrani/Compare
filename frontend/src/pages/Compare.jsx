@@ -1,6 +1,7 @@
 // frontend/src/pages/Compare.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchCourses } from '../api/courses';
+import { fetchTopicImportance } from '../api/ai';
 import ComparisonVisualizer from '../components/ComparisonVisualizer';
 import CourseDetailModal from '../components/CourseDetailModal';
 
@@ -11,7 +12,8 @@ export default function Compare() {
   const [loading, setLoading] = useState(true);
   const [leftId, setLeftId] = useState('');
   const [rightId, setRightId] = useState('');
-  const [detailTopic, setDetailTopic] = useState(null);
+  const [detailTopic, setDetailTopic] = useState(null); // {topic, technology, reason, wikiUrl}
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -27,7 +29,9 @@ export default function Compare() {
       }
     }
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const activeCourses = useMemo(
@@ -39,9 +43,56 @@ export default function Compare() {
   const rightCourse = activeCourses.find(c => getId(c) === rightId);
   const selectedCourses = [leftCourse, rightCourse].filter(Boolean);
 
+  // 👇 now receives technology / module name as 2nd argument
+  async function handleExplainTopic(topicName, technology) {
+    if (!leftCourse || !rightCourse) return;
+
+    setAiLoading(true);
+    setDetailTopic({ topic: topicName, technology, reason: null, wikiUrl: null });
+
+    try {
+      // pick "longer" course by number of topics (same logic as before)
+      const leftSize = (leftCourse.syllabus || []).reduce(
+        (s, m) => s + (m.topics || []).length,
+        0
+      );
+      const rightSize = (rightCourse.syllabus || []).reduce(
+        (s, m) => s + (m.topics || []).length,
+        0
+      );
+
+      const longerCourse = leftSize >= rightSize ? leftCourse : rightCourse;
+      const shorterCourse = longerCourse === leftCourse ? rightCourse : leftCourse;
+
+      const data = await fetchTopicImportance({
+        topic: topicName,
+        longerCourse: longerCourse.name,
+        shorterCourse: shorterCourse.name
+      });
+
+      setDetailTopic({
+        topic: topicName,
+        technology,
+        reason: data.reason || data.message,
+        wikiUrl: data.wikiUrl || null
+      });
+    } catch (err) {
+      console.error(err);
+      setDetailTopic({
+        topic: topicName,
+        technology,
+        reason:
+          'Could not fetch external explanation right now. This topic is still very useful for real projects and interviews.',
+        wikiUrl: null
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <header className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow flex items-center justify-between">
+      <header className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Compare two courses</h1>
           <p className="text-sm text-gray-500">
@@ -72,8 +123,7 @@ export default function Compare() {
 
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <span>
-                Selected:{' '}
-                <strong>{selectedCourses.length}/2</strong>
+                Selected: <strong>{selectedCourses.length}/2</strong>
               </span>
             </div>
 
@@ -81,9 +131,7 @@ export default function Compare() {
               {!loading && selectedCourses.length === 2 ? (
                 <ComparisonVisualizer
                   courses={selectedCourses}
-                  onTopicClick={(topic, importance) =>
-                    setDetailTopic({ topic, importance })
-                  }
+                  onExplainTopic={handleExplainTopic}
                 />
               ) : (
                 <div className="p-8 text-center text-gray-500">
@@ -136,7 +184,11 @@ export default function Compare() {
       {detailTopic && (
         <CourseDetailModal
           topic={detailTopic.topic}
-          importance={detailTopic.importance}
+          technology={detailTopic.technology}
+          importance={null}
+          reason={detailTopic.reason}
+          wikiUrl={detailTopic.wikiUrl}
+          loading={aiLoading}
           onClose={() => setDetailTopic(null)}
         />
       )}

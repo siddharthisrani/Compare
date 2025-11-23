@@ -26,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/imports', importRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+app.use('/api/ai', require('./routes/aiRoutes'))
 
 // health
 app.get('/healthz', (req, res) => res.send({ ok: true, env: process.env.NODE_ENV || 'dev' }));

@@ -10,6 +10,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
 
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -24,7 +26,9 @@ export default function Home() {
       }
     }
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const activeCourses = useMemo(
@@ -32,13 +36,18 @@ export default function Home() {
     [courses]
   );
 
+  function downloadXlsx(id) {
+    window.open(`${apiBase}/courses/${id}/export-xlsx`, '_blank');
+  }
+
   const filtered = useMemo(() => {
     const q = (query || '').trim().toLowerCase();
     if (!q) return activeCourses;
-    return activeCourses.filter(c =>
-      (c.name || '').toLowerCase().includes(q) ||
-      (c.track || '').toLowerCase().includes(q) ||
-      (c.code || '').toLowerCase().includes(q)
+    return activeCourses.filter(
+      c =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.track || '').toLowerCase().includes(q) ||
+        (c.code || '').toLowerCase().includes(q)
     );
   }, [activeCourses, query]);
 
@@ -47,7 +56,7 @@ export default function Home() {
       <header className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Choose your course</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mt-1">
             Search by name, technology or code and compare different durations
             to see what you’ll learn and what you might miss.
           </p>
@@ -70,7 +79,7 @@ export default function Home() {
             No active courses matched your search.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map(c => (
               <article
                 key={getId(c)}
@@ -80,8 +89,8 @@ export default function Home() {
                   <div className="text-xs uppercase tracking-wide text-indigo-500">
                     {c.track || 'Course'}
                   </div>
-                  <h2 className="font-semibold">{c.name}</h2>
-                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <h2 className="font-semibold break-words">{c.name}</h2>
+                  <div className="text-xs text-gray-500 flex flex-wrap items-center gap-2">
                     {c.displayDuration && (
                       <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
                         {c.displayDuration}
@@ -95,19 +104,28 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
                   <span>
                     Updated:{' '}
                     {c.lastUpdated
                       ? new Date(c.lastUpdated).toLocaleDateString()
                       : '—'}
                   </span>
-                  <Link
-                    to="/compare"
-                    className="text-indigo-600 hover:underline font-medium"
-                  >
-                    Compare →
-                  </Link>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      className="btn-ghost text-xs"
+                      onClick={() => downloadXlsx(getId(c))}
+                    >
+                      Download (.xlsx)
+                    </button>
+                    <Link
+                      to="/compare"
+                      className="btn text-xs flex items-center justify-center"
+                    >
+                      Compare →
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))}

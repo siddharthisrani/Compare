@@ -83,7 +83,7 @@ function decorateImportance(t) {
  *  - courses: [courseA, courseB]
  *  - onTopicClick(topic, importance)
  */
-export default function ComparisonVisualizer({ courses = [], onTopicClick }) {
+export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
   const left = courses[0] || null;
   const right = courses[1] || null;
 
@@ -246,11 +246,10 @@ export default function ComparisonVisualizer({ courses = [], onTopicClick }) {
                               <div className="text-sm font-medium">{t.name}</div>
                               <button
                                 className="btn-ghost px-2 py-1 text-xs"
-                                onClick={() =>
-                                  onTopicClick && onTopicClick(t.name, t.importance)
-                                }
+                                 type="button"
+                                onClick={() => onExplainTopic && onExplainTopic(t.name,m.moduleName)}
                               >
-                                View importance
+                                Why important? (AI)
                               </button>
                             </li>
                           ))}
