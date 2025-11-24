@@ -4,6 +4,9 @@ import { fetchCourses } from '../api/courses';
 import { fetchTopicImportance } from '../api/ai';
 import ComparisonVisualizer from '../components/ComparisonVisualizer';
 import CourseDetailModal from '../components/CourseDetailModal';
+import CourseStatsVisual from '../components/CourseStatsVisual';
+import TopicCoverageChart from '../components/TopicCoverageChart';
+
 
 const getId = c => c?.id || c?._id;
 
@@ -14,6 +17,7 @@ export default function Compare() {
   const [rightId, setRightId] = useState('');
   const [detailTopic, setDetailTopic] = useState(null); // {topic, technology, reason, wikiUrl}
   const [aiLoading, setAiLoading] = useState(false);
+  
 
   useEffect(() => {
     let mounted = true;

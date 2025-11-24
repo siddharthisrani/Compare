@@ -1,4 +1,4 @@
-// src/components/ComparisonVisualizer.jsx
+// ComparisonVisualizer.jsx - Only responsive changes, exact same logic
 import React, { useMemo, useState } from 'react';
 import { computeIntersectionAndMissing, buildCourseMap, topicKey } from '../utils/compare';
 
@@ -120,7 +120,7 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
     <div className="space-y-4">
       {/* header summary */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">Comparison</h2>
             <div className="text-sm text-gray-500">
@@ -131,9 +131,13 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
               Missing technologies: <span className="font-medium">{missingModules.length}</span>
             </div>
           </div>
-          <div className="text-right text-xs text-gray-500">
-            <div>{left.displayDuration || left.code || ''}</div>
-            <div>{right.displayDuration || right.code || ''}</div>
+          <div className="text-xs text-gray-500 flex sm:block gap-2">
+            <div className="px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded">
+              {left.displayDuration || left.code || ''}
+            </div>
+            <div className="px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded">
+              {right.displayDuration || right.code || ''}
+            </div>
           </div>
         </div>
       </div>
@@ -157,11 +161,11 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
                 return (
                   <div
                     key={c.key}
-                    className="px-3 py-2 border rounded-md flex items-center justify-between"
+                    className="px-3 py-2 border rounded-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
                   >
                     <div className="text-sm font-medium">{c.name}</div>
                     {labels.length > 0 && (
-                      <div className="text-xs text-gray-400 text-right ml-4">
+                      <div className="text-xs text-gray-400 sm:text-right sm:ml-4">
                         {labels.join(', ')}
                       </div>
                     )}
@@ -204,15 +208,15 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
               return (
                 <div key={m.moduleName} className="border rounded">
                   {/* Technology row */}
-                  <div className="p-3 flex items-center justify-between bg-gray-50 dark:bg-gray-700">
-                    <div>
+                  <div className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 dark:bg-gray-700">
+                    <div className="flex-1">
                       <div className="font-medium">{label}</div>
                       <div className="text-xs text-gray-500">
                         {topics.length} extra topic{topics.length !== 1 ? 's' : ''} in this
                         technology
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex justify-between gap-2">
                       <button
                         className="btn-ghost px-2 py-1"
                         onClick={() =>
@@ -242,12 +246,12 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
                       ) : (
                         <ul className="space-y-2">
                           {topics.map(t => (
-                            <li key={t.key} className="flex items-start justify-between">
+                            <li key={t.key} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                               <div className="text-sm font-medium">{t.name}</div>
                               <button
-                                className="btn-ghost px-2 py-1 text-xs"
-                                 type="button"
-                                onClick={() => onExplainTopic && onExplainTopic(t.name,m.moduleName)}
+                                className="btn-ghost px-2 py-1 text-xs self-start"
+                                type="button"
+                                onClick={() => onExplainTopic && onExplainTopic(t.name, m.moduleName)}
                               >
                                 Why important? (AI)
                               </button>

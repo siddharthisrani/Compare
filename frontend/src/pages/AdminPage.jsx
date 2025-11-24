@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminModal from '../components/AdminModal';
 import { fetchCourses, createOrUpdateCourse, toggleCourseActive, importCsv } from '../api/courses';
-import { fetchUsers, createUser, updateUser, deactivateUser } from '../api/users';
+import { fetchUsers, createUser, updateUser, deactivateUser,toggleUserActive } from '../api/users';
 import { useAuth } from '../context/AuthProvider';
 
 const getId = c => c?.id || c?._id;
@@ -80,18 +80,19 @@ function AdminCoursesSection() {
 
   useEffect(() => { loadCourses(); }, []);
 
-  async function loadCourses() {
-    setLoading(true);
-    try {
-      const data = await fetchCourses();
-      setCourses(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setStatusMsg({ type: 'error', text: 'Failed to load courses' });
-    } finally {
-      setLoading(false);
-    }
+ async function loadCourses() {
+  setLoading(true);
+  try {
+    // ⬇️ admin wants to see active + inactive
+    const data = await fetchCourses({ includeInactive: true });
+    setCourses(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error(err);
+    setStatusMsg({ type: 'error', text: 'Failed to load courses' });
+  } finally {
+    setLoading(false);
   }
+}
 
   function openNew() {
     setEditing(null);
@@ -309,6 +310,25 @@ function AdminUsersSection() {
 
   useEffect(() => { loadUsers(); }, []);
 
+  async function onToggleActive(u) {
+  const label = u.isActive === false ? 'activate' : 'deactivate';
+  if (!window.confirm(`Do you want to ${label} user ${u.email}?`)) return;
+
+  try {
+    await toggleUserActive(u);
+    await loadUsers();
+    setStatusMsg({
+      type: 'success',
+      text: `User ${u.isActive === false ? 'activated' : 'deactivated'}`
+    });
+  } catch (err) {
+    console.error(err);
+    setStatusMsg({ type: 'error', text: 'Failed to change user status' });
+  } finally {
+    setTimeout(() => setStatusMsg(null), 3000);
+  }
+}
+
   async function loadUsers() {
     setLoading(true);
     try {
@@ -486,9 +506,9 @@ function AdminUsersSection() {
                         {u.role !== 'admin' && (
                           <button
                             className="btn-ghost px-2 py-1"
-                            onClick={() => onDeactivate(u)}
+                            onClick={() => onToggleActive(u)}
                           >
-                            Deactivate
+                             {u.isActive === false ? 'Activate' : 'Deactivate'}
                           </button>
                         )}
                       </div>

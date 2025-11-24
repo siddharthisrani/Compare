@@ -18,6 +18,16 @@ export async function updateUser(id, payload) {
   return res.data;
 }
 
+export async function toggleUserActive(user) {
+  const id = user.id || user._id;
+  if (!id) throw new Error('User id required');
+  const res = await client.put(`/admin/users/${id}`, {
+    ...user,
+    isActive: !user.isActive,
+  });
+  return res.data;
+}
+
 // deactivate user
 export async function deactivateUser(id) {
   const res = await client.delete(`/admin/users/${id}`);

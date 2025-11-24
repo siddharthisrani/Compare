@@ -62,11 +62,29 @@ async function exportCourseXlsx(req, res, next) {
 async function listCourses(req, res, next) {
   try {
     const q = req.query.q || '';
-    const filter = { isActive: true };
-    if (q) filter.$or = [{ name: new RegExp(q, 'i') }, { track: new RegExp(q, 'i') }, { category: new RegExp(q, 'i') }];
+    const includeInactive = req.query.includeInactive === '1'; // 👈 NEW
+
+    const filter = {};
+    if (!includeInactive) {
+      // for public pages: only active courses
+      filter.isActive = true;
+      // if you want to treat "missing isActive" as active, use:
+      // filter.isActive = { $ne: false };
+    }
+
+    if (q) {
+      filter.$or = [
+        { name: new RegExp(q, 'i') },
+        { track: new RegExp(q, 'i') },
+        { category: new RegExp(q, 'i') }
+      ];
+    }
+
     const courses = await Course.find(filter).sort({ createdAt: -1 }).lean();
     res.json(courses);
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 }
 
 async function getCourse(req, res, next) {

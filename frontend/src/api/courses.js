@@ -7,8 +7,10 @@ import client from './client';
 
 const getId = c => c?.id || c?._id;
 /** Public: list courses (optionally search q) */
-export async function fetchCourses() {
-  const res = await client.get('/courses');
+export async function fetchCourses(options = {}) {
+  const { includeInactive = false } = options;
+  const qs = includeInactive ? '?includeInactive=1' : '';
+  const res = await client.get(`/courses${qs}`);
   return res.data || [];
 }
 
