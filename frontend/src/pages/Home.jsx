@@ -1,7 +1,8 @@
-// frontend/src/pages/Home.jsx
+// Home.jsx - Updated with visual components (no logic changes)
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchCourses } from '../api/courses';
-import { Link } from 'react-router-dom';
+import HomeHeroSection from '../components/HomeHeroSection';
+import EnhancedCourseCard from '../components/EnhancedCourseCard';
 
 const getId = c => c?.id || c?._id;
 
@@ -52,84 +53,97 @@ export default function Home() {
   }, [activeCourses, query]);
 
   return (
-    <div className="space-y-6">
-      <header className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Choose your course</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Search by name, technology or code and compare different durations
-            to see what you’ll learn and what you might miss.
-          </p>
-        </div>
-        <div className="w-full md:w-80">
-          <input
-            className="input w-full"
-            placeholder="Search e.g. MERN, Java, Data Science..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-        </div>
-      </header>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Hero Section */}
+      <HomeHeroSection />
 
-      <section className="bg-transparent">
+      {/* Search Section */}
+      <div id="courses-section" className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              Explore Courses
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Search by name, technology or code and compare different durations
+              to see what you'll learn and what you might miss.
+            </p>
+          </div>
+          <div className="w-full md:w-80">
+            <div className="relative">
+              <input
+                className="input w-full pl-10"
+                placeholder="Search e.g. MERN, Java, Data Science..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Courses Grid */}
+      <section>
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading courses…</div>
+          <div className="flex items-center justify-center p-12">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400">Loading courses…</p>
+            </div>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No active courses matched your search.
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow">
+            <svg
+              className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">
+              No courses matched your search.
+            </p>
+            <button
+              onClick={() => setQuery('')}
+              className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm transition-colors"
+            >
+              Clear Search
+            </button>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filtered.map(c => (
-              <article
-                key={getId(c)}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col justify-between"
-              >
-                <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide text-indigo-500">
-                    {c.track || 'Course'}
-                  </div>
-                  <h2 className="font-semibold break-words">{c.name}</h2>
-                  <div className="text-xs text-gray-500 flex flex-wrap items-center gap-2">
-                    {c.displayDuration && (
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
-                        {c.displayDuration}
-                      </span>
-                    )}
-                    {c.code && (
-                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        {c.code}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
-                  <span>
-                    Updated:{' '}
-                    {c.lastUpdated
-                      ? new Date(c.lastUpdated).toLocaleDateString()
-                      : '—'}
-                  </span>
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      type="button"
-                      className="btn-ghost text-xs"
-                      onClick={() => downloadXlsx(getId(c))}
-                    >
-                      Download (.xlsx)
-                    </button>
-                    <Link
-                      to="/compare"
-                      className="btn text-xs flex items-center justify-center"
-                    >
-                      Compare →
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <>
+            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              Showing <strong>{filtered.length}</strong> course{filtered.length !== 1 ? 's' : ''}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filtered.map(c => (
+                <EnhancedCourseCard
+                  key={getId(c)}
+                  course={c}
+                  onDownload={downloadXlsx}
+                />
+              ))}
+            </div>
+          </>
         )}
       </section>
     </div>

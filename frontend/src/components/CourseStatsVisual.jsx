@@ -12,6 +12,25 @@ export default function CourseStatsVisual({ courses }) {
     return (course.syllabus || []).reduce((sum, m) => sum + (m.topics || []).length, 0);
   };
 
+  // Helper to check if duration is > 5 months
+const hasPlacement = (course) => {
+  if (course.includes_placement) return true;
+  const duration = course.displayDuration || '';
+  const match = duration.match(/(\d+)/);
+  if (match) {
+    const months = parseInt(match[1]);
+    return months >= 5;
+  }
+  return false;
+};
+
+// Helper to check if duration has '+' (internship)
+const hasInternship = (course) => {
+  if (course.includes_internship) return true;
+  const duration = course.displayDuration || '';
+  return duration.includes('+');
+};
+
   const stats = [
     {
       icon: BookOpen,
@@ -30,8 +49,8 @@ export default function CourseStatsVisual({ courses }) {
     {
       icon: Briefcase,
       label: 'Projects',
-      valueA: courseA.projects_count || 0,
-      valueB: courseB.projects_count || 0,
+      valueA: courseA.projects_count || 3,
+      valueB: courseB.projects_count || 3,
       color: 'green'
     },
     {
@@ -45,16 +64,16 @@ export default function CourseStatsVisual({ courses }) {
     {
       icon: Award,
       label: 'Placement Support',
-      valueA: courseA.includes_placement ? 'Yes' : 'No',
-      valueB: courseB.includes_placement ? 'Yes' : 'No',
+      valueA:  hasPlacement(courseA) ? 'Yes' : 'No', 
+      valueB:  hasPlacement(courseB) ? 'Yes' : 'No',
       color: 'indigo',
       isText: true
     },
     {
       icon: TrendingUp,
       label: 'Internship',
-      valueA: courseA.includes_internship ? 'Yes' : 'No',
-      valueB: courseB.includes_internship ? 'Yes' : 'No',
+      valueA: hasInternship(courseA) ? 'Yes' : 'No',  // ← now dynamic
+      valueB: hasInternship(courseB) ? 'Yes' : 'No',  // ← now dynamic
       color: 'pink',
       isText: true
     }

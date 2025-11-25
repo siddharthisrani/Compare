@@ -83,15 +83,15 @@ function decorateImportance(t) {
  *  - courses: [courseA, courseB]
  *  - onTopicClick(topic, importance)
  */
-export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
+export default function ComparisonVisualizer({ courses = [],studentName, onExplainTopic }) {
   const left = courses[0] || null;
   const right = courses[1] || null;
 
   const [openModule, setOpenModule] = useState(null);
   const [showAllCovered, setShowAllCovered] = useState(false);
 
-  const { common, missingModules, mapB, longerCourse } = useMemo(() => {
-    if (!left || !right) return { common: [], missingModules: [], mapB: new Map(), longerCourse: null };
+  const { common, missingModules, mapB, longerCourse, shorterCourse } = useMemo(() => {
+    if (!left || !right) return { common: [], missingModules: [], mapB: new Map(), longerCourse: null, shorterCourse: null };
 
     const countTopics = (c) =>
       (c.syllabus || []).reduce((sum, m) => sum + ((m.topics || []).length), 0);
@@ -103,8 +103,41 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
     const longer  = leftSize <= rightSize ? right : left;
 
     const { common, missingModules, mapB } = computeIntersectionAndMissing(shorter, longer);
-    return { common, missingModules, mapB, longerCourse: longer };
+    return { common, missingModules, mapB, longerCourse: longer,shorterCourse: shorter };
   }, [left, right]);
+
+  function handleUpgradeClick() {
+  if (!shorterCourse || !longerCourse) return;
+
+  const phone = '916261437008'; // 91 + 6261437008
+  const namePart = studentName && studentName.trim()
+    ? studentName.trim()
+    : '________';
+
+  const fromLabel = `${shorterCourse.name || ''}${
+    shorterCourse.displayDuration ? ` (${shorterCourse.displayDuration})` : ''
+  }`;
+
+  const toLabel = `${longerCourse.name || ''}${
+    longerCourse.displayDuration ? ` (${longerCourse.displayDuration})` : ''
+  }`;
+
+  const text = [
+    `Hello, my name is ${namePart}.`,
+    '',
+    `I was comparing courses on the Cybrom course comparison website and I am interested in upgrading my course.`,
+    '',
+    `Current course: ${fromLabel}`,
+    `Upgrade to: ${toLabel}`,
+    '',
+    'Please share the upgrade process, fees, and the nearest upcoming batch details.',
+    '',
+    'Thank you.'
+  ].join('\n');
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
 
   if (!left || !right) {
     return <div className="p-6 text-gray-500">Please select two courses to compare.</div>;
@@ -226,13 +259,11 @@ export default function ComparisonVisualizer({ courses = [], onExplainTopic }) {
                         {openModule === m.moduleName ? 'Hide' : 'View'}
                       </button>
                       <button
-                        className="btn px-2 py-1"
-                        onClick={() =>
-                          alert('Upgrade flow here – open enquiry or payment modal.')
-                        }
-                      >
-                        Upgrade
-                      </button>
+             className="btn px-2 py-1"
+                onClick={handleUpgradeClick}
+                                >
+                    Upgrade
+                  </button>
                     </div>
                   </div>
 
